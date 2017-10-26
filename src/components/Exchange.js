@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const baseUrl = 'http://apilayer.net/api/historical?'
 const API_KEY = 'access_key=45c0f1fb6a611a0fb3de91cc17cdd000'
-const date = '2017-10-22';
+const date = '2017-10-25';
 const currencies = 'USD,EUR,CAD,AUD';
 const format = 1;
 
@@ -15,33 +15,34 @@ export default class Exchange extends React.Component {
       item: [],
       newItem: []
     };
-    this.handleSubmit = this.handleSubmit.bind(this);
+     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
     const url = `${baseUrl}${API_KEY}&date=${date}&currencies=${currencies}&format=${format}`
-    axios.get(url)
-         .then(({data}) => {
-         	console.log(data.quotes);
-         	this.state.item.push(data.quotes);
-         	 this.setState({
-            item: this.state.item
-             });
-         })
-         .catch((err) => {
-         	console.log(err);
-         })
+    console.log(url)
+    axios.all([
+   	axios.get(url),
+   	axios.get('http://apilayer.net/api/historical?access_key=45c0f1fb6a611a0fb3de91cc17cdd000&date=2017-10-22&currencies=USD,EUR,CAD,AUD&format=1')])
+   .then(axios.spread(( itemResponse, newItemResponse)=>{
+   	console.log('item', itemResponse.data.quotes);
+   	console.log('newItem', newItemResponse.data.quotes);
+   	  this.setState({
+   		item : itemResponse.data.quotes,
+   		newItem : newItemResponse.data.quotes
+   	});
+  })
+  )
+}
 
-  }
-
-  handleSubmit() {
+handleSubmit() {
    // clear the previous data
    this.setState({ 
-  		newItem: []
-  	});
+  newItem: []
+  });
 
-    //get date value
-    var value = new Date( document.getElementById('dateInput').value);
+  //get date value
+    var value = new Date(document.getElementById('dateInput').value);
 
    // date format YYYY-MM-DD
     var day = value.getDate();
@@ -55,51 +56,51 @@ export default class Exchange extends React.Component {
 
      axios.get(newUrl)
           .then(({data}) => {
-         	console.log(data);
-         	this.state.newItem.push(data.quotes);
-         	this.setState({
-            newItem: this.state.newItem
+          this.setState({
+            newItem: data.quotes
              });
-         	console.log(this.state.newItem)
          })
          .catch((err) => {
-         	console.log(err);
+          console.log(err);
          })
-
 }
 
-
   render() {
-    const rate = this.state.item.map((quotes, index) => {
-      return Object.keys(quotes).map(key => {
-        return (
-            <div key = {key} >
-              <p>{quotes[key]}</p>
-            </div>
-          )
-      })
-    });
-
-    const newRate = this.state.newItem.map((quotes, index) => {
-    	return Object.keys(quotes).map(key => {
-    		return (
-    			<div key = {key} >
-    			<p>{quotes[key]}</p>
-    			</div>
-    			)
-    	})
-    })
-
-    console.log({rate} - {newRate})
+    const rate = this.state.item;
+    const newRate = this.state.newItem;
     return ( 
       <div>
-        <div>Exchange</div> 
-          Today 's rate
-          <p>{rate}</p> 
-          <p> {newRate} </p>
-         
-        <input type="date" onChange={this.handleSubmit} id="dateInput" />
-    
+        <div>Exchange Information</div>
+     <table>
+     <thead>
+     <tr>
+           <th>Currencies combination</th>
+           <th>Today's rate</th>
+           <th>rate  <input type="date" onChange={this.handleSubmit} id="dateInput" /></th>
+           <th>Difference</th>
+     </tr>
+     </thead>
+     <tbody>
+     <tr>
+          <td>USDCAD</td>
+          <td>{rate.USDCAD}</td>
+          <td>{newRate.USDCAD}</td>
+          <td>body</td>
+     </tr>
+      <tr>
+          <td>USDEUR</td>
+          <td>{rate.USDEUR}</td>
+          <td>{newRate.USDEUR}</td>
+          <td>body</td>
+      </tr>
+      <tr>
+          <td>USDAUD</td>
+          <td>{rate.USDAUD}</td>
+          <td>{newRate.USDAUD}</td>
+          <td>boddy</td>
+       </tr>
+      </tbody>
+     </table>
      </div>
     )
   }
