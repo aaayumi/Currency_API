@@ -5,7 +5,7 @@ import Exchange from './Exchange';
 const App = () => (
 		<div> 
 		<Exchange />
-		 </div>
+		</div>
 		);
 
 export default App;
