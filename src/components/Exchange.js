@@ -1,12 +1,13 @@
 import React from 'react';
 import axios from 'axios';
+import './Exchange.css';
 
 const tableStyle = {
   border : "1px solid black"
 }
+
 const baseUrl = 'http://apilayer.net/api/historical?'
 const API_KEY = 'access_key=45c0f1fb6a611a0fb3de91cc17cdd000'
-const date = '2017-10-25';
 const currencies = 'USD,EUR,CAD,AUD';
 const format = 1;
 
@@ -17,12 +18,13 @@ export default class Exchange extends React.Component {
     this.state = {
       item: [],
       newItem: [],
-      date: ""
+      date: "Yesterday"
     };
      this.handleSubmit = this.handleSubmit.bind(this);
   }
 
  componentDidMount() {
+    // define today
     var newDate = new Date();
     var day = newDate.getDate();
     var yesterday = (newDate.getDate() -1 );
@@ -31,12 +33,12 @@ export default class Exchange extends React.Component {
 
     var todayDate = [year, month, day].join('-');
     var yesterdayDate = [year, month, yesterday].join('-');
-    
+
     const url = `${baseUrl}${API_KEY}&date=${todayDate}&currencies=${currencies}&format=${format}`
-    console.log(url)
+    const newUrl = `${baseUrl}${API_KEY}&date=${yesterdayDate}&currencies=${currencies}&format=${format}`
     axios.all([
     axios.get(url),
-    axios.get('http://apilayer.net/api/historical?access_key=45c0f1fb6a611a0fb3de91cc17cdd000&date=2017-10-22&currencies=USD,EUR,CAD,AUD&format=1')])
+    axios.get(newUrl)])
    .then(axios.spread(( itemResponse, newItemResponse)=>{
     console.log('item', itemResponse.data.quotes);
     console.log('newItem', newItemResponse.data.quotes);
@@ -51,23 +53,22 @@ export default class Exchange extends React.Component {
 
 
 handleSubmit() {
-   // clear the previous data
-   this.setState({ 
+  // clear the previous data
+  this.setState({ 
   newItem: []
   });
 
   //get date value
-    var value = new Date(document.getElementById('dateInput').value);
+  var value = new Date(document.getElementById('dateInput').value);
 
-   // date format YYYY-MM-DD
-    var day = value.getDate();
-    var month = value.getMonth() + 1;
-    var year = value.getFullYear();
+  // date format YYYY-MM-DD
+  var day = value.getDate();
+  var month = value.getMonth() + 1;
+  var year = value.getFullYear();
 
-    var thisDate = [year, month, day].join('-');
-    console.log(thisDate)
+  var thisDate = [year, month, day].join('-');
         
-    const newUrl = `${baseUrl}${API_KEY}&date=${thisDate}&currencies=${currencies}&format=${format}`
+  const newUrl = `${baseUrl}${API_KEY}&date=${thisDate}&currencies=${currencies}&format=${format}`
 
      axios.get(newUrl)
           .then(({data}) => {
@@ -77,8 +78,10 @@ handleSubmit() {
          })
          .catch((err) => {
           console.log(err);
+          alert("choose another date")
          })
 
+   // store data in state for display
    const tableDate = document.getElementById("dateInput").value;
    this.setState({
     date: tableDate
@@ -93,10 +96,12 @@ handleSubmit() {
     return ( 
      <div>
      <h2>Exchange Information</h2>
+     <div className="form">
      <p>Choose date</p>
      <input type="date" onChange={this.handleSubmit} id="dateInput" />
+     </div>
      <table style={tableStyle}>
-     <thead style={tableStyle}>
+     <thead>
      <tr>
            <th>Currencies</th>
            <th>The rate of Today</th>
@@ -107,7 +112,7 @@ handleSubmit() {
      <tr>
           <td>USDCAD</td>
           <td>{rate.USDCAD}</td>
-        
+          <td>{newRate.USDCAD}</td>
      </tr>
       <tr>
           <td>USDEUR</td>
